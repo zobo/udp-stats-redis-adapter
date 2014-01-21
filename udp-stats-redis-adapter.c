@@ -113,8 +113,9 @@ int main (void) {
       }
 
       // Build and send redis query.
-      if (-1 == write(red, send, snprintf(send, 1024, "ZADD stats:%s %s %i\r\n%s:%s\r\n",
-                                          msg_parts.bucket, msg_parts.timestamp,
+      if (-1 == write(red, send, snprintf(send, 1024, "*4\r\n$4\r\nZADD\r\n$%i\r\nstats:%s\r\n$%i\r\n%s\r\n$%i\r\n%s:%s\r\n",
+                                          msg_parts.bucket_len+6, msg_parts.bucket,
+                                          msg_parts.timestamp_len, msg_parts.timestamp,
                                           msg_parts.timestamp_len + 1 + msg_parts.value_len,
                                           msg_parts.timestamp, msg_parts.value))) {
         goto err_redis_write;
@@ -122,8 +123,8 @@ int main (void) {
 
       // If kind is given, also change kind of bucket.
       if (msg_parts.kind) {
-        if (-1 == write(red, send, snprintf(send, 1024, "SET stats:%s:kind %i\r\n%s\r\n",
-                                            msg_parts.bucket, msg_parts.kind_len,
+        if (-1 == write(red, send, snprintf(send, 1024, "*3\r\n$3\r\nSET\r\n$%i\r\nstats:%s:kind\r\n$%i\r\n%s\r\n",
+                                            msg_parts.bucket_len+11, msg_parts.bucket, msg_parts.kind_len,
                                             msg_parts.kind))) {
           goto err_redis_write;
         }
